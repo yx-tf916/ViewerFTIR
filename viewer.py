@@ -10,6 +10,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter.constants import *
 import os.path
+from tkinter import messagebox
 
 _location = os.path.dirname(__file__)
 
@@ -37,6 +38,47 @@ def _style_code():
        style.theme_use('winnative')    
     _style_code_ran = 1
 
+class DoubleSlider(tk.Frame):
+    def __init__(self, parent, from_=0, to=6000, command=None, **kwargs):
+        super().__init__(parent, **kwargs)
+        
+        self.from_ = from_
+        self.to = to
+        self.command = command
+        
+        self.scale1 = ttk.Scale(self, from_=self.from_, to=self.to, orient=tk.HORIZONTAL)
+        self.scale1.pack(fill=tk.X, side=tk.TOP)
+        self.scale1.set(self.from_)
+        self.scale1.bind("<B1-Motion>", self.update_scale1)
+        self.scale1.bind("<ButtonRelease-1>", self.call_command)
+
+        self.scale2 = ttk.Scale(self, from_=self.from_, to=self.to, orient=tk.HORIZONTAL)
+        self.scale2.pack(fill=tk.X, side=tk.TOP)
+        self.scale2.set(self.to)
+        self.scale2.bind("<B1-Motion>", self.update_scale2)
+        self.scale2.bind("<ButtonRelease-1>", self.call_command)
+
+    def update_scale1(self, event):
+        if self.scale1.get() >= self.scale2.get():
+            self.scale1.set(self.scale2.get() - 1)
+        self.call_command(None)
+
+    def update_scale2(self, event):
+        if self.scale2.get() <= self.scale1.get():
+            self.scale2.set(self.scale1.get() + 1)
+        self.call_command(None)
+
+    def call_command(self, event):
+        if self.command:
+            self.command()
+
+    def get(self):
+        return (self.scale1.get(), self.scale2.get())
+
+    def set(self, lower, upper):
+        self.scale1.set(lower)
+        self.scale2.set(upper)
+    
 class Toplevel1:
     def __init__(self, top=None):
         '''This class configures and populates the toplevel window.
@@ -54,19 +96,28 @@ class Toplevel1:
         self.top = top
 
         _style_code()
-        self.TScale1 = ttk.Scale(self.top, from_=0, to=1.0, state=tk.DISABLED)
-        self.TScale1.place(relx=0.009, rely=0.892, relheight=0.026, relwidth=0.978)
+        self.TScale1 = ttk.Scale(self.top,
+                                 from_=0, to=6000,
+                                 state=tk.NORMAL)
+        self.TScale1.place(relx=0.009, rely=0.892, relheight=0.026, relwidth=0.9)
         self.TScale1.configure(length="1080")
-        self.TScale1.configure(command=viewer_support_v2.update_plot_range)
         self.TScale1.set(0)  # Set the initial position to the leftmost side
+        self.TScale1.configure(command=viewer_support_v2.update_plot_range)
 
-        self.TScale2 = ttk.Scale(self.top, from_=0, to=1.0, state=tk.DISABLED)
-        self.TScale2.place(relx=0.009, rely=0.919, relheight=0.026, relwidth=0.978)
+        self.TScale2 = ttk.Scale(self.top,
+                                 from_=0, to=6000,
+                                 state=tk.NORMAL)
+        self.TScale2.place(relx=0.009, rely=0.919, relheight=0.026, relwidth=0.9)
         self.TScale2.configure(length="1080")
+        self.TScale2.set(6000)  # Set the initial position to the rightmost side
         self.TScale2.configure(command=viewer_support_v2.update_plot_range)
-        self.TScale2.set(1)  # Set the initial position to the rightmost side
 
-        self.Listbox1 = tk.Listbox(self.top, selectmode=tk.BROWSE)
+        # Replace TScale1 and TScale2 with DoubleSlider
+        # self.double_slider = DoubleSlider(self.top, from_=0, to=6000,
+        #                                   command = viewer_support_v2.update_plot_range)
+        # self.double_slider.place(relx=0.087, rely=0.892, relheight=0.052, relwidth=0.9)        
+
+        self.Listbox1 = tk.Listbox(self.top, selectmode=tk.EXTENDED)
         self.Listbox1.place(relx=0.083, rely=0.027, relheight=0.219, relwidth=0.341)
         self.Listbox1.configure(background="white")
         self.Listbox1.configure(disabledforeground="#a3a3a3")
@@ -94,7 +145,7 @@ Raw Files
         self.Button1.configure(command=viewer_support_v2.get_spectra)
 
         self.Button2 = tk.Button(self.top)
-        self.Button2.place(relx=0.014, rely=0.114, height=36, width=70)
+        self.Button2.place(relx=0.014, rely=0.114, height=26, width=70)
         self.Button2.configure(activebackground="#d9d9d9")
         self.Button2.configure(activeforeground="black")
         self.Button2.configure(background="#d9d9d9")
@@ -104,7 +155,7 @@ Raw Files
         self.Button2.configure(foreground="#000000")
         self.Button2.configure(highlightbackground="#d9d9d9")
         self.Button2.configure(highlightcolor="#000000")
-        self.Button2.configure(text='''Plot All''')
+        self.Button2.configure(text='''Plot''')
         self.Button2.configure(command=viewer_support_v2.plot)
 
         self.Button3 = tk.Button(self.top)
@@ -211,7 +262,7 @@ Raw Files
         self.Button6.configure(command=viewer_support_v2.clear_plot)
 
         self.Button7 = tk.Button(self.top)
-        self.Button7.place(relx=0.014, rely=0.168, height=56, width=70)
+        self.Button7.place(relx=0.014, rely=0.208, height=26, width=70)
         self.Button7.configure(activebackground="#d9d9d9")
         self.Button7.configure(activeforeground="black")
         self.Button7.configure(background="#d9d9d9")
@@ -220,8 +271,7 @@ Raw Files
         self.Button7.configure(foreground="#000000")
         self.Button7.configure(highlightbackground="#d9d9d9")
         self.Button7.configure(highlightcolor="#000000")
-        self.Button7.configure(text='''Remove
-Raw Files''')
+        self.Button7.configure(text='''Remove''')
         self.Button7.configure(command=viewer_support_v2.remove_selected)
 
         self.Button8 = tk.Button(self.top)
@@ -236,7 +286,7 @@ Raw Files''')
         self.Button8.configure(text='''Integrate
 Peak''')
 
-        self.Button9 = tk.Button(self.top)
+        self.Button9 = tk.Button(self.top, state = tk.DISABLED)
         self.Button9.place(relx=0.014, rely=0.249, height=26, width=70)
         self.Button9.configure(activebackground="#d9d9d9")
         self.Button9.configure(activeforeground="black")
@@ -270,11 +320,12 @@ Peak''')
         self.Canvas1.configure(selectbackground="#d9d9d9")
         self.Canvas1.configure(selectforeground="black")
 
-        self.TScale3 = ttk.Scale(self.top, from_=0, to=1.0, state = tk.DISABLED)
-        self.TScale3.place(relx=0.082, rely=0.254, relheight=0.027, relwidth=0.837)
+        self.TScale3 = ttk.Scale(self.top, from_=0, to=1.0,
+                                 state = tk.DISABLED)
+        self.TScale3.place(relx=0.163, rely=0.254, relheight=0.027, relwidth=0.679)
         self.TScale3.configure(length="924")
         self.TScale3.configure(takefocus="")
-        self.TScale3.configure(command=viewer_support_v2.update_plot_range)
+        # self.TScale3.configure(command=viewer_support_v2.update_plot_range)
 
         self.Frame1 = tk.Frame(self.top)
         self.Frame1.place(relx=0.43, rely=0.027, relheight=0.219, relwidth=0.168)
@@ -288,8 +339,8 @@ Peak''')
 
         # Add Treeview to Frame1
         self.tree = ttk.Treeview(self.Frame1, columns=("Column 1", "Column 2"), show='headings')
-        self.tree.heading("Column 1", text="Wavenumber (cm-1)")
-        self.tree.heading("Column 2", text="Epsilon")
+        self.tree.heading("Column 1", text="Wavenumber")
+        self.tree.heading("Column 2", text="Absorbance")
         self.tree.column("Column 1", width=100)
         self.tree.column("Column 2", width=100)
         self.tree.pack(fill=tk.BOTH, expand=True)
@@ -375,6 +426,74 @@ Peak''')
         self.Button9.configure(command=viewer_support_v2.add_anchor)
         self.Button9_1.configure(command=viewer_support_v2.remove_anchors)
         self.Button8.configure(command=viewer_support_v2.integrate_peak)
+
+        # # new widgets added on 02/24/2025
+        # self.Button7_1 = tk.Button(self.top)
+        # self.Button7_1.place(relx=0.014, rely=0.168, height=26, width=70)
+        # self.Button7_1.configure(activebackground="#d9d9d9")
+        # self.Button7_1.configure(activeforeground="black")
+        # self.Button7_1.configure(background="#d9d9d9")
+        # self.Button7_1.configure(disabledforeground="#a3a3a3")
+        # self.Button7_1.configure(font="-family {Segoe UI} -size 9")
+        # self.Button7_1.configure(foreground="#000000")
+        # self.Button7_1.configure(highlightbackground="#d9d9d9")
+        # self.Button7_1.configure(highlightcolor="#000000")
+        # self.Button7_1.configure(text='''Multi. Sel.''')
+        # self.Button7_1.configure(command = viewer_support_v2.switch_multi_single)
+
+        self.Entry1 = tk.Entry(self.top)
+        self.Entry1.insert(0, "0")
+        self.Entry1.place(relx=0.912, rely=0.892, height=19, relwidth=0.076)
+        self.Entry1.configure(background="white")
+        self.Entry1.configure(disabledforeground="#a3a3a3")
+        self.Entry1.configure(font="TkFixedFont")
+        self.Entry1.configure(foreground="#000000")
+        self.Entry1.configure(highlightbackground="#d9d9d9")
+        self.Entry1.configure(highlightcolor="#000000")
+        self.Entry1.configure(insertbackground="#000000")
+        self.Entry1.configure(selectbackground="#d9d9d9")
+        self.Entry1.configure(selectforeground="black")
+        self.Entry1.bind("<Return>", viewer_support_v2.set_zoom_lower_limit)
+
+        self.Entry1_1 = tk.Entry(self.top)
+        self.Entry1_1.insert(0, "6000")
+        self.Entry1_1.place(relx=0.912, rely=0.919, height=19, relwidth=0.076)
+        self.Entry1_1.configure(background="white")
+        self.Entry1_1.configure(disabledforeground="#a3a3a3")
+        self.Entry1_1.configure(font="-family {Courier New} -size 10")
+        self.Entry1_1.configure(foreground="#000000")
+        self.Entry1_1.configure(highlightbackground="#d9d9d9")
+        self.Entry1_1.configure(highlightcolor="#000000")
+        self.Entry1_1.configure(insertbackground="#000000")
+        self.Entry1_1.configure(selectbackground="#d9d9d9")
+        self.Entry1_1.configure(selectforeground="black")
+        self.Entry1_1.bind("<Return>", viewer_support_v2.set_zoom_upper_limit)
+
+        self.Entry1_2 = tk.Entry(self.top)
+        self.Entry1_2.place(relx=0.083, rely=0.254, height=19, relwidth=0.076)
+        self.Entry1_2.configure(background="white")
+        self.Entry1_2.configure(disabledforeground="#a3a3a3")
+        self.Entry1_2.configure(font="-family {Courier New} -size 10")
+        self.Entry1_2.configure(foreground="#000000")
+        self.Entry1_2.configure(highlightbackground="#d9d9d9")
+        self.Entry1_2.configure(highlightcolor="#000000")
+        self.Entry1_2.configure(insertbackground="#000000")
+        self.Entry1_2.configure(selectbackground="#d9d9d9")
+        self.Entry1_2.configure(selectforeground="black")
+        self.Entry1_2.bind("<Return>", viewer_support_v2.set_left_anchor)
+
+        self.Entry1_2_1 = tk.Entry(self.top)
+        self.Entry1_2_1.place(relx=0.844, rely=0.254, height=19, relwidth=0.076)
+        self.Entry1_2_1.configure(background="white")
+        self.Entry1_2_1.configure(disabledforeground="#a3a3a3")
+        self.Entry1_2_1.configure(font="-family {Courier New} -size 10")
+        self.Entry1_2_1.configure(foreground="#000000")
+        self.Entry1_2_1.configure(highlightbackground="#d9d9d9")
+        self.Entry1_2_1.configure(highlightcolor="#000000")
+        self.Entry1_2_1.configure(insertbackground="#000000")
+        self.Entry1_2_1.configure(selectbackground="#d9d9d9")
+        self.Entry1_2_1.configure(selectforeground="black")
+        self.Entry1_2_1.bind("<Return>", viewer_support_v2.set_right_anchor)
         
 
 def start_up():
