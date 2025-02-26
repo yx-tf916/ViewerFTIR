@@ -382,7 +382,7 @@ def set_left_anchor(event = None):
         else:
             raise ValueError("Limit out of range")
     except ValueError as e:
-        messagebox.showerror("Invalid Input", "Please enter a valid number between 0 and 6000.")
+        messagebox.showerror("Invalid Input", "Please enter a valid number within the current zoom range.")
 
 def set_right_anchor(event = None):
     try:
@@ -397,7 +397,7 @@ def set_right_anchor(event = None):
         else:
             raise ValueError("Limit out of range")
     except ValueError as e:
-        messagebox.showerror("Invalid Input", "Please enter a valid number between 0 and 6000.")
+        messagebox.showerror("Invalid Input", "Please enter a valid number within the current zoom range.")
 
     
     
